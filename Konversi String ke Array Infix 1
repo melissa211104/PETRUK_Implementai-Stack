@@ -1,0 +1,59 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <cctype>
+
+using namespace std;
+
+bool isOperator(char c) {
+    return c == '+' || c == '-' || c == '*' || c == '/' || c == '%';  // memeriksa apakah c adalah operator artimatika
+}
+
+vector<string> pisahkaninfix(const string &infix) {
+    vector<string> tokens; //menyimpan hasil
+    string num = ""; //menyimpan angka yang sedang dibaca
+    
+    for (size_t i=0;i<infix.length(); i++){
+        if(infix[i] == ' ') continue; //mengecek jika spasi next
+        
+        //memeriksa digit atau tanda minus adalah bilangan negatif
+        if(isdigit(infix[i]) || (infix[i] == '-' && (i==0 || (isOperator(infix[i-1]) || infix[i-1] == '(')))){
+            if(infix[i] == '-' && (i==0 || (isOperator(infix[i-1]) && infix[i-1] != ')'))){ //memeriksa tanda - adalah operator unar
+                if(!num.empty()){
+                    tokens.push_back(num);
+                    num = "";
+                }
+                tokens.push_back("-1"); //jika iya tambah -1 * ke tokens
+                tokens.push_back("*");
+            } else {
+                num += infix[i]; //jika tidak tambahkan ke num
+            }
+        }else {
+            if(!num.empty()){  //memeriksa karakter bukan bagian dari angka(operator/kurung)
+                tokens.push_back(num);
+                num = "";
+            }
+            tokens.push_back(string(1, infix[i]));
+        }
+    }
+    
+    if(!num.empty()){ //memeriksa num tidak kosong
+        tokens.push_back(num); //tambahkan num ketoken jika tdk kosong
+    }
+    
+    return tokens;
+}
+
+int main(){
+    string infix;
+    getline(cin, infix);
+    
+    vector<string> tokens = pisahkaninfix(infix);
+    
+    for(const auto &token : tokens){
+        cout<<token<<" ";
+    }
+    
+    return 0;
+}
+
