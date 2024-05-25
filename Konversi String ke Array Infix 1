@@ -18,7 +18,7 @@ vector<string> pisahkaninfix(const string &infix) {
         
         //memeriksa digit atau tanda minus adalah bilangan negatif
         if(isdigit(infix[i]) || (infix[i] == '-' && (i==0 || (isOperator(infix[i-1]) || infix[i-1] == '(')))){
-            if(infix[i] == '-' && (i==0 || (isOperator(infix[i-1]) && infix[i-1] != ')'))){ //memeriksa tanda - adalah operator unar
+            if(infix[i] == '-' && i+ 1 < infix.length() && infix[i+1]=='(' && (i==0 || isOperator(infix[i-1]) || infix[i-1]=='(')){ //Operator minus unar yang diikuti oleh tanda kurung buka
                 if(!num.empty()){
                     tokens.push_back(num);
                     num = "";
