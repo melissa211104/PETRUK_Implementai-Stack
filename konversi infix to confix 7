@@ -1,0 +1,81 @@
+#include <iostream>
+#include <stack>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+bool isOperator(char c){
+  return c == '+' || c == '-' || c == '/' || c == '%' || c == '*';
+}
+
+int precedence(char op){
+  if(op == '*' || op == '%' || op == '/'){
+  return 2;
+  }else if (op == '+' || op == '-'){
+    return 1;
+      }else{ 
+        return 0;
+  }
+}
+
+vector<string>infixToPostfix(const string& infix){
+  vector<string>postfix;
+  stack<char>operators;
+
+  for(size_t i=0; i< infix.length(); ++i){
+    char c = infix[i];
+
+    if(c == ' ') continue;
+
+    if(isdigit(c) ||(c == '-' && (i == 0 || infix[i-1] == '(' || isOPerator(infix[i-1])))){
+      string operand;
+      if(c == '-'){
+        operand += c;
+        ++i;
+        while(i < infix.length() && isdigit(infix[i])){
+          operand += infix[i];
+          ++i;
+        }
+      }else{
+        while ( i < infix.length() && isdigit(infix[i])){
+          operand+= infix[i];
+          ++i;
+        }
+      }
+      postfix.push_back(operand);
+      --i;
+    }else if(c == '('){
+      operators.push(c);
+    }else if (c == ')'){
+      while(!operators.empty() && operators.top() != '('){
+        postfix.push_back(string(1,operators.top()));
+        operators.pop();
+      }
+      operators.pop();
+    }else if (isOperator(c)){
+      while(!operators.empty()) && opeators.top() ! '(' && pecedence (c) <= predence(operators.top()){
+        postfix.push_back(string(1,operators.top()));
+        operators.pop()
+      }
+      operators.push(c);
+    }
+  }
+while(!operators.emppty()){
+  postfix.push_back(string(1,operators.top()));
+    operators.pop();
+}
+return postfix;
+}
+
+int main(){
+  string infix;
+  getline(cin, infix);
+
+  vector<string> postfix = infixToPostfix(infix);
+
+for(const string& token : postfix) {
+  cout<<token<< " ";
+}
+return 0;
+}
