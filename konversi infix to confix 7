@@ -28,7 +28,7 @@ vector<string>infixToPostfix(const string& infix){
 
     if(c == ' ') continue;
 
-    if(isdigit(c) ||(c == '-' && (i == 0 || infix[i-1] == '(' || isOPerator(infix[i-1])))){
+    if(isdigit(c) ||(c == '-' && (i == 0 || infix[i-1] == '(' || isOperator(infix[i-1])))){
       string operand;
       if(c == '-'){
         operand += c;
@@ -53,15 +53,15 @@ vector<string>infixToPostfix(const string& infix){
         operators.pop();
       }
       operators.pop();
-    }else if (isOperator(c)){
-      while(!operators.empty()) && opeators.top() ! '(' && pecedence (c) <= predence(operators.top()){
-        postfix.push_back(string(1,operators.top()));
-        operators.pop()
-      }
+    }else if (isOperator(c)) {
+            while (!operators.empty() && operators.top() != '(' && precedence(c) <= precedence(operators.top())) {
+                postfix.push_back(string(1, operators.top()));
+                operators.pop();
+            }
       operators.push(c);
     }
   }
-while(!operators.emppty()){
+while(!operators.empty()){
   postfix.push_back(string(1,operators.top()));
     operators.pop();
 }
