@@ -1,89 +1,138 @@
 #include <iostream>
-#include <stack>
-#include <string>
 #include <vector>
+#include <string>
+#include <stack>
 #include <cctype>
-
+#include <cmath>
 using namespace std;
 
-int precedence(char op) {
-    return (op == '+' || op == '-') ? 1 : (op == '*' || op == '/' || op == '%') ? 2 : 0;
+bool isOperator(char ch) {
+    return ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%';
 }
 
-vector<string> tokenize(const string& expr) {
-    vector<string> tokens;
-    for (size_t i = 0; i < expr.size(); ++i) {
-        if (isdigit(expr[i]) || (expr[i] == '-' && (i == 0 || !isdigit(expr[i-1])))) {
-            string num;
-            if (expr[i] == '-') num += expr[i++];
-            while (i < expr.size() && isdigit(expr[i])) num += expr[i++];
-            tokens.push_back(num);
-            --i;
-        } else if (!isspace(expr[i])) {
-            tokens.push_back(string(1, expr[i]));
+bool isOperator(const string& str) {
+    return str == "+" || str == "-" || str == "*" || str == "/" || str == "%";
+}
+
+string removeWhitespace(const string& str) {
+    string result;
+    for (char ch : str) {
+        if (!isspace(ch)) {
+            result.push_back(ch);
         }
     }
-    return tokens;
+    return result;
 }
 
-vector<string> infixToPostfix(const string& expr) {
-    vector<string> tokens = tokenize(expr);
-    stack<string> ops;
-    vector<string> output;
+vector<string> convertToInfix(const string& input) {
+    vector<string> infix;
+    string num;
+    bool expectUnary = true; // flag to track unary minus
 
-    for (const string& token : tokens) {
-        if (isdigit(token[0]) || (token[0] == '-' && token.size() > 1)) {
-            output.push_back(token);
+    for (size_t i = 0; i < input.size(); ++i) {
+        char ch = input[i];
+        if (isdigit(ch) || (ch == '.' && !num.empty())) {
+            num += ch;
+            expectUnary = false;
+        } else {
+            if (!num.empty()) {
+                infix.push_back(num);
+                num.clear();
+            }
+            if (ch == '(') {
+                infix.push_back(string(1, ch));
+                expectUnary = true;
+            } else if (ch == ')') {
+                infix.push_back(string(1, ch));
+                expectUnary = false;
+            } else if (isOperator(ch)) {
+                if (ch == '-' && expectUnary) {
+                    num += ch;
+                } else {
+                    infix.push_back(string(1, ch));
+                    expectUnary = true;
+                }
+            }
+        }
+    }
+    if (!num.empty()) {
+        infix.push_back(num);
+    }
+
+    return infix;
+}
+
+int checkPrecedence(const string& op) {
+    if (op == "*" || op == "/" || op == "%") return 3;
+    if (op == "+" || op == "-") return 2;
+    return 1;
+}
+
+vector<string> convertToPostfix(const vector<string>& infix) {
+    stack<string> operators;
+    vector<string> postfix;
+
+    for (const string& token : infix) {
+        if (isdigit(token[0]) || (token[0] == '-' && token.size() > 1 && isdigit(token[1])) || (token[0] == '.' && token.size() > 1 && isdigit(token[1]))) {
+            postfix.push_back(token);
         } else if (token == "(") {
-            ops.push(token);
+            operators.push(token);
         } else if (token == ")") {
-            while (!ops.empty() && ops.top() != "(") {
-                output.push_back(ops.top());
-                ops.pop();
+            while (!operators.empty() && operators.top() != "(") {
+                postfix.push_back(operators.top());
+                operators.pop();
             }
-            ops.pop();
-        } else {
-            while (!ops.empty() && precedence(ops.top()[0]) >= precedence(token[0])) {
-                output.push_back(ops.top());
-                ops.pop();
+            operators.pop();
+        } else if (isOperator(token)) {
+            while (!operators.empty() && checkPrecedence(operators.top()) >= checkPrecedence(token)) {
+                postfix.push_back(operators.top());
+                operators.pop();
             }
-            ops.push(token);
+            operators.push(token);
         }
     }
 
-    while (!ops.empty()) {
-        output.push_back(ops.top());
-        ops.pop();
+    while (!operators.empty()) {
+        postfix.push_back(operators.top());
+        operators.pop();
     }
 
-    return output;
+    return postfix;
 }
 
-int evaluatePostfix(const vector<string>& postfix) {
-    stack<int> values;
+double doOperation(double a, double b, const string& op) {
+    if (op == "+") return a + b;
+    if (op == "-") return a - b;
+    if (op == "*") return a * b;
+    if (op == "/") return a / b;
+    if (op == "%") return fmod(a, b);
+    return 0;
+}
+
+double evaluatePostfix(const vector<string>& postfix) {
+    stack<double> result;
+
     for (const string& token : postfix) {
-        if (isdigit(token[0]) || (token[0] == '-' && token.size() > 1)) {
-            values.push(stoi(token));
+        if (isOperator(token)) {
+            double a = result.top(); result.pop();
+            double b = result.top(); result.pop();
+            result.push(doOperation(b, a, token));
         } else {
-            int b = values.top(); values.pop();
-            int a = values.top(); values.pop();
-            switch (token[0]) {
-                case '+': values.push(a + b); break;
-                case '-': values.push(a - b); break;
-                case '*': values.push(a * b); break;
-                case '/': values.push(a / b); break;
-                case '%': values.push(a % b); break;
-            }
+            result.push(stod(token));
         }
     }
-    return values.top();
+
+    return result.top();
 }
 
 int main() {
-    string expr;
-    getline(cin, expr);
+    string input;
+    getline(cin, input);
 
-    vector<string> postfix = infixToPostfix(expr);
+    string noSpaces = removeWhitespace(input);
+    vector<string> infix = convertToInfix(noSpaces);
+    vector<string> postfix = convertToPostfix(infix);
+
     cout << evaluatePostfix(postfix) << endl;
 
     return 0;
