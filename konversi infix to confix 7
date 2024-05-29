@@ -2,80 +2,81 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <cctype>
 
 using namespace std;
 
-bool isOperator(char c){
-  return c == '+' || c == '-' || c == '/' || c == '%' || c == '*';
+bool isOperator(char c) {
+    return c == '+' || c == '-' || c == '/' || c == '%' || c == '*';
 }
 
-int precedence(char op){
-  if(op == '*' || op == '%' || op == '/'){
-  return 2;
-  }else if (op == '+' || op == '-'){
-    return 1;
-      }else{ 
+int precedence(char op) {
+    if (op == '*' || op == '%' || op == '/') {
+        return 2;
+    } else if (op == '+' || op == '-') {
+        return 1;
+    } else {
         return 0;
-  }
+    }
 }
 
-vector<string>infixToPostfix(const string& infix){
-  vector<string>postfix;
-  stack<char>operators;
+vector<string> infixToPostfix(const string& infix) {
+    vector<string> postfix;
+    stack<char> operators;
+    bool expectUnary = true; 
+    for (size_t i = 0; i < infix.length(); ++i) {
+        char c = infix[i];
 
-  for(size_t i=0; i< infix.length(); ++i){
-    char c = infix[i];
+        if (c == ' ') continue;
 
-    if(c == ' ') continue;
-
-    if(isdigit(c) ||(c == '-' && (i == 0 || infix[i-1] == '(' || isOperator(infix[i-1])))){
-      string operand;
-      if(c == '-'){
-        operand += c;
-        ++i;
-        while(i < infix.length() && isdigit(infix[i])){
-          operand += infix[i];
-          ++i;
-        }
-      }else{
-        while ( i < infix.length() && isdigit(infix[i])){
-          operand+= infix[i];
-          ++i;
-        }
-      }
-      postfix.push_back(operand);
-      --i;
-    }else if(c == '('){
-      operators.push(c);
-    }else if (c == ')'){
-      while(!operators.empty() && operators.top() != '('){
-        postfix.push_back(string(1,operators.top()));
-        operators.pop();
-      }
-      operators.pop();
-    }else if (isOperator(c)) {
+        if (isdigit(c)) {
+            string operand;
+            while (i < infix.length() && isdigit(infix[i])) {
+                operand += infix[i];
+                ++i;
+            }
+            --i;
+            postfix.push_back(operand);
+            expectUnary = false;
+        } else if (c == '-' && expectUnary) {
+            postfix.push_back("-1");
+            operators.push('*');
+            expectUnary = false;
+        } else if (c == '(') {
+            operators.push(c);
+            expectUnary = true;
+        } else if (c == ')') {
+            while (!operators.empty() && operators.top() != '(') {
+                postfix.push_back(string(1, operators.top()));
+                operators.pop();
+            }
+            if (!operators.empty()) operators.pop();
+            expectUnary = false;
+        } else if (isOperator(c)) {
             while (!operators.empty() && operators.top() != '(' && precedence(c) <= precedence(operators.top())) {
                 postfix.push_back(string(1, operators.top()));
                 operators.pop();
             }
-      operators.push(c);
+            operators.push(c);
+            expectUnary = true;
+        }
+    } 
+
+while (!operators.empty()) {
+        postfix.push_back(string(1, operators.top()));
+        operators.pop();
     }
-  }
-while(!operators.empty()){
-  postfix.push_back(string(1,operators.top()));
-    operators.pop();
-}
-return postfix;
+    return postfix;
 }
 
-int main(){
-  string infix;
-  getline(cin, infix);
+int main() {
+    string infix;
+    getline(cin, infix);
 
-  vector<string> postfix = infixToPostfix(infix);
+    vector<string> postfix = infixToPostfix(infix);
 
-for(const string& token : postfix) {
-  cout<<token<< " ";
-}
-return 0;
+    for (const string& token : postfix) {
+        cout << token << " ";
+    }
+    return 0;
 }
