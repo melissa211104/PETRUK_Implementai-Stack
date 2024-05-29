@@ -3,137 +3,172 @@
 #include <string>
 #include <stack>
 #include <cctype>
-#include <cmath>
+#include <algortihm>
+
 using namespace std;
 
-bool isOperator(char ch) {
-    return ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%';
+bool check (char ch, vector<char> range);
+vector<string> convertToInfix(string input);
+string removeWhitespace (string str);
+int checkPredence(char op);
+vector<string> convertToPostfix (vector<string> infix);
+double doOperation (double a, double b, string op);
+double evaluateOperation (vector<string> postfix;
+
+int main(){
+string input;
+getline (cin, input);
+
+vector<string> infix = convertToInfix (removeWhitespace (input));
+vector<string> postfix = convertToPostfix (infix);
+cout << evaluateOperation (postfix) << endl;
+
+return 0;
 }
 
-bool isOperator(const string& str) {
-    return str == "+" || str == "-" || str == "*" || str == "/" || str == "%";
+bool check (char ch, vector<char> range){
+vector<char> ::iterator it;
+it = find (range.begin(), range.end(), ch);
+return it-range.begin() < (long int) range.size();
 }
 
-string removeWhitespace(const string& str) {
-    string result;
-    for (char ch : str) {
-        if (!isspace(ch)) {
-            result.push_back(ch);
-        }
-    }
-    return result;
+bool checkString (string str, vector<string> range){
+vector<string> ::iterator it;
+it = find (range.begin(), range.end(),str);
+return it-range.begin() < (long int) range.size();
 }
 
-vector<string> convertToInfix(const string& input) {
-    vector<string> infix;
-    string num;
-    bool expectUnary = true; // flag to track unary minus
+string removeWhitespace (string str){
+vector<char> op = {'+', '*', '/', '-', '%', '(', ')'};
+string ::iterator i = str.begin();
+string result;
 
-    for (size_t i = 0; i < input.size(); ++i) {
-        char ch = input[i];
-        if (isdigit(ch) || (ch == '.' && !num.empty())) {
-            num += ch;
-            expectUnary = false;
-        } else {
-            if (!num.empty()) {
-                infix.push_back(num);
-                num.clear();
-            }
-            if (ch == '(') {
-                infix.push_back(string(1, ch));
-                expectUnary = true;
-            } else if (ch == ')') {
-                infix.push_back(string(1, ch));
-                expectUnary = false;
-            } else if (isOperator(ch)) {
-                if (ch == '-' && expectUnary) {
-                    num += ch;
-                } else {
-                    infix.push_back(string(1, ch));
-                    expectUnary = true;
-                }
-            }
-        }
-    }
-    if (!num.empty()) {
-        infix.push_back(num);
-    }
-
-    return infix;
+while (i != str.end(){
+if (isdigit (*i) || check (*i,op)){
+result.push_back(*i);
+}
+i++;
+}
+return result; 
 }
 
-int checkPrecedence(const string& op) {
-    if (op == "*" || op == "/" || op == "%") return 3;
-    if (op == "+" || op == "-") return 2;
-    return 1;
+vector<string> convertToInfix (string input){
+vector<char> op = {'+', '*', '/', '%'};
+vector<char> kurung = {'(', ')'};
+vector<string> infix;
+string temp;
+string ::iterator i = input.begin();
+while (i != input.end()){
+if (isdigit (*i)){
+temp.push_back(*i);
+if (!isdigit (*(i+1))){
+infix.push_back(temp);
+temp.clear();
+}
+} else if (check (*i,op) || check (*i,kurung)){
+temp.push_back(*i);
+infix.push_back(temp);
+temp.clear();
+} else if (*i == '-'){
+if (check(*(i-1),op || *(i-1) == '(' || (i == input.begin()&&*(i+1) == '(')){
+infix.push_back("-1");
+infix.push_back("*");
+} else if (isdigit(*(i+1))&& i == input.begin()){
+temp.push_back('-');
+} else {
+infix.push_back("-");
+}
+}
+i++;
+}
+return infix;
 }
 
-vector<string> convertToPostfix(const vector<string>& infix) {
-    stack<string> operators;
-    vector<string> postfix;
-
-    for (const string& token : infix) {
-        if (isdigit(token[0]) || (token[0] == '-' && token.size() > 1 && isdigit(token[1])) || (token[0] == '.' && token.size() > 1 && isdigit(token[1]))) {
-            postfix.push_back(token);
-        } else if (token == "(") {
-            operators.push(token);
-        } else if (token == ")") {
-            while (!operators.empty() && operators.top() != "(") {
-                postfix.push_back(operators.top());
-                operators.pop();
-            }
-            operators.pop();
-        } else if (isOperator(token)) {
-            while (!operators.empty() && checkPrecedence(operators.top()) >= checkPrecedence(token)) {
-                postfix.push_back(operators.top());
-                operators.pop();
-            }
-            operators.push(token);
-        }
-    }
-
-    while (!operators.empty()) {
-        postfix.push_back(operators.top());
-        operators.pop();
-    }
-
-    return postfix;
+int checkPrecedence (string op){
+int result = 0;
+if (op == "%" || op == "-" || op == "/"){
+result = 3;
+} else if (op == "+" || op == "-"){
+result = 4;
+}
+return result;
 }
 
-double doOperation(double a, double b, const string& op) {
-    if (op == "+") return a + b;
-    if (op == "-") return a - b;
-    if (op == "*") return a * b;
-    if (op == "/") return a / b;
-    if (op == "%") return fmod(a, b);
-    return 0;
+vector <string> convertToPostfix(vector<string> infix){
+vector<string> op = {"+", "-", "*", "/", "%"};
+vector<string> kurung = {"(".")"};
+stack<string> result;
+vector<String> postfix;
+vector<string> ::iterator i = infix.begin();
+
+while (i != infix.end()){
+if (*i=="("){
+result.push(*i);
+} else if (*i==")"){
+while (!result.empty()&&result.top() != "("){
+postfix.push_back(result.top());
+result.pop();
+}
+result.pop();
+} else if (checkString (*i,op)){
+if (result.empty() || result.top () == "("){
+result.push(*i);
+} else{
+while (!result.empty()&&result.top() != "(" && checkPrecedence (*i) >= checkPrecedence (resullt.top())){
+postfix.push_back (result.top());
+result.pop();
+}
+result.push(*i);
+}
+} else {
+postfix.push_back(*i);
+}
+i++;
+}
+while (!result.empty()){
+postfix.push_back(result.top());
+result.pop();
+}
+return postfix;
 }
 
-double evaluatePostfix(const vector<string>& postfix) {
-    stack<double> result;
+double evaluateOperation (vector<string> postfix){
+vector<string> op = {"+", "-", "*", "/", "%"};
 
-    for (const string& token : postfix) {
-        if (isOperator(token)) {
-            double a = result.top(); result.pop();
-            double b = result.top(); result.pop();
-            result.push(doOperation(b, a, token));
-        } else {
-            result.push(stod(token));
-        }
-    }
+stack<double result;
+vector<string> ::iterator i = postfix.begin();
+double a,b,c;
+string temp;
 
-    return result.top();
+while (i != postfix.end()){
+if (checkString (*i,op)){
+a = result.top();
+result.pop();
+
+b = result.top();
+result.top();
+temp = *i;
+
+c = doOperation (a,b,temp);
+result.push(c);
+} else {
+result.push(strtod((*i).c_str(),NULL));
+}
+i++;
+}
+return result.top();
 }
 
-int main() {
-    string input;
-    getline(cin, input);
-
-    string noSpaces = removeWhitespace(input);
-    vector<string> infix = convertToInfix(noSpaces);
-    vector<string> postfix = convertToPostfix(infix);
-
-    cout << evaluatePostfix(postfix) << endl;
-
-    return 0;
+double doOperation (double a, double b, string op){
+double result;
+if (op == "+"){
+result = b + a;
+} else if (op == "-"){
+result = b - a;
+} else if (op == "/"){
+result = b / a;
+} else if (op == "%"){
+result = (int) b % (int) a;
+}
+return result;
 }
